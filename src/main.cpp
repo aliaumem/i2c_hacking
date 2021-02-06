@@ -531,31 +531,19 @@ struct ds1307_rtc : i2c_device<Driver, Block_Mode::i2c_multi_byte>
 };
 
 
-constexpr auto build_glyph(const std::array<std::uint8_t, 8> &data) {
-  std::array<std::uint8_t, 8> result{};
+constexpr auto build_glyph(std::array<std::uint8_t, 8> const &input)
+{
+  std::array<std::uint8_t, 8> output{};
 
   // transpose the data for happy ds1307 controller
 
-  const auto get_bit = [](const auto x, const auto y, const auto &input){
-    return ((input[y] >> (7-x)) & 1) == 1;
-  };
-
-  const auto set_bit = [](const auto x, const auto y, auto &input, bool value) {
-    if (value) {
-      input[y] |= (1 << (7-x));
-    } else {
-      input[y] &= ~(1 << (7-x));
-    }
-  };
-
-
-  for (std::size_t row = 0; row < 8; ++row) {
-    for (std::size_t col = 0; col < 8; ++col) {
-      set_bit(row, col, result, get_bit(col, 7-row, data));
+  for (size_t row_out = 0; row_out < 8; ++row_out) {
+    for (size_t row_in = 0; row_in < 8; ++row_in) {
+      output[row_out] |= (input[row_in] >> (7 - row_out) & 1) << row_in;
     }
   }
 
-  return result;
+  return output;
 }
 
 
